@@ -1,53 +1,81 @@
+import wait from '../utils/wait'
+
+/**************************************
+ * States
+ *************************************/
+const HERO_STATE_IDLE = 'idle';
+const HERO_STATE_TRANSITION = 'transition';
+const HERO_STATE_WAIT = 'wait';
+const HERO_STATE_RETURN = 'return';
+
+const HERO_STATE_MOVE_TOWARD = 'moveToward';
+const HERO_STATE_DEAL_DAMAGE = 'dealDamage';
+const HERO_STATE_RETURN_AFTER_ATTACK = 'returnAfterAttack';
 
 /**************************************
  * Action types
  *************************************/
-export const INCREMENT = 'increment';
-export const DECREMENT = 'decrement';
-export const SET_VIEW_MODE = 'setViewMode';
-export const TOGGLE_VIEW_MODE = 'toggleViewMode';
-export const START_TIMER = 'startTimer';
-export const STOP_TIMER = 'stopTimer';
+// Hero
+export const SET_HERO_STATE = 'SET_HERO_STATE';
+export const SET_HERO_POSITION = 'SET_HERO_POSITION';
+
+// Monster
+export const MONSTER_ATTACK = 'MONSTER_ATTACK';
+
 
 /**************************************
  * Action creators
  *************************************/
-export function increment(value) {
-    return { type: INCREMENT, value };
+// Hero
+export function setHeroState(state) {
+    return { type: SET_HERO_STATE, state };
 }
 
-export function decrement(value) {
-    return { type: DECREMENT, value };
+export function setHeroPosition(x, y) {
+    return { type: SET_HERO_POSITION, x, y };
 }
 
-export function setViewMode(viewMode) {
-    return { type: SET_VIEW_MODE, viewMode };
-}
-
-export function toggleViewMode() {
-    return { type: TOGGLE_VIEW_MODE };
-}
-
-let timer = null;
-
-export function startTimer(interval = 1000, value = 1) {
-    return function (dispatch) {
-        if(timer === null) {
-            timer = setInterval(() => {
-                dispatch(increment(value));
-            }, interval);
-    
-            dispatch({ type: START_TIMER, timer });
+export function dodge(x, y) {
+    return function(dispatch, getState) {
+        const { hero } = getState();
+        if(hero.currentState == HERO_STATE_IDLE) {
+            dispatch(setHeroState(HERO_STATE_TRANSITION));
+            wait(100)
+            .then(() => {
+                dispatch(setHeroState(HERO_STATE_WAIT));
+                dispatch(setHeroPosition(x, y));
+            })
+            .then(() => wait(1000))
+            .then(() => {
+                dispatch(setHeroState(HERO_STATE_RETURN));
+            })
+            .then(() => wait(100))
+            .then(() => {
+                dispatch(setHeroPosition(1, 1));
+                dispatch(setHeroState(HERO_STATE_IDLE));
+            });
         }
     }
 }
 
-export function stopTimer() {
-    return function(dispatch) {
-        if(timer !== null) {
-            clearInterval(timer);
-            timer = null;
-            dispatch({ type: STOP_TIMER });
+export function heroAttack() {
+    return function(dispatch, getState) {
+        const { hero } = getState();
+        if(hero.currentState == HERO_STATE_IDLE) {
+            dispatch(setHeroState(HERO_STATE_MOVE_TOWARD));
+            wait(100)
+            .then(() => dispatch(setHeroState(HERO_STATE_DEAL_DAMAGE)))
+            .then(() => wait(100))
+            .then(() => dispatch(setHeroState(HERO_STATE_RETURN_AFTER_ATTACK)))
+            .then(() => wait(100))
+            .then(() => dispatch(setHeroState(HERO_STATE_IDLE)))
         }
+    }
+}
+
+// Monster
+export function monsterAttack() {
+    return {
+        type: MONSTER_ATTACK
     }
 }
