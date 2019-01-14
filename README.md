@@ -1,6 +1,6 @@
-# Webapp template
+# Redux template
 
-Just a simple template to start web development.
+Just a simple example to demonstrate redux.
 
 # Start developing
 ```bash

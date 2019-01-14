@@ -1,14 +1,20 @@
 import './style.scss';
 
-import { increment, decrement, toggleViewMode } from './model/action';
+import { 
+    increment, 
+    decrement, 
+    toggleViewMode, 
+    startTimer,
+    stopTimer
+} from './model/action';
 
 import store from './model/store';
 
 function component(store) {
-    const { value, viewMode } = store.getState();
+    const { value, viewMode, timer } = store.getState();
 
     let element = document.createElement('div');
-    element.classList.add('hello');
+    element.classList.add('text');
 
     let label = document.createElement('p');
     switch(viewMode) {
@@ -32,6 +38,18 @@ function component(store) {
     element.appendChild(button('decrement', () => {
         store.dispatch(decrement(1))
     }));
+
+    if(timer === null) {
+        element.appendChild(button('start timer', () => {
+            store.dispatch(startTimer());
+        }));
+    }
+    else {
+        element.appendChild(button('stop timer', () => {
+            store.dispatch(stopTimer());
+        }));
+    }
+    
 
     return element;
   }
